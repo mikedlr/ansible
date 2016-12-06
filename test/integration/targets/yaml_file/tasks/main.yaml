@@ -1,0 +1,84 @@
+# test code for the yaml module
+# (c) 2014, Michael DeHaan <michael.dehaan@gmail.com>
+# (c) 2016, Michael De La Rue 
+
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+# - hosts: localhost
+#   connection: local
+#   gather_facts: false
+#   tags:
+#     - test_yaml_file
+- name: Create file from template
+  template: src=template-yml-file.j2 dest={{output_dir}}/foo.templated.yml mode=0644
+  register: template_result
+    
+- name: Collect file statistics
+  stat:
+    path: "{{output_dir}}/foo.templated.yml"
+    checksum_algorithm: sha384
+  register: initial_stat
+
+- name: "Validate: yaml file okay"
+  assert:
+    that:
+      - "initial_stat.stat.isreg == True"
+#      - "initial_stat.stat.checksum == 'cf1c23eeef9073f38c0fb842304e545ce04160f5b87435944b324181046fa45d25d6a315a2b4598e13e6ff6c5de49329'"
+    msg: "failed to create correct yaml file"
+
+- name: "Validate: action suceeded"
+  assert:
+    that:
+      - "template_result.changed == True"
+    msg: "failed to create template file"
+
+- name: "Load the YAML file"
+  include_vars:
+    file: "{{output_dir}}/foo.templated.yml"
+    name: first_include
+
+- name: "Validate: yaml file contents good"
+  assert:
+    that:
+      - "first_include.yaml_loaded == 'definitely loaded'"
+      - "first_include.a_big_number == 49201455582"
+      - "first_include.random_variable == '{{ random_token }}'"
+    msg: "failed to create correct yaml file"
+
+- name: Recreate file from template
+  template: src=template-yml-file.j2 dest={{output_dir}}/foo.templated.yml mode=0644
+  register: template_result
+
+- name: Collect file statistics
+  stat: 
+    path: "{{output_dir}}/foo.templated.yml"
+    checksum_algorithm: sha384
+  register: repeat_stat
+
+- name: "Validate: action mde no change"
+  assert:
+    that:
+      - "template_result.changed == False"
+      - "repeat_stat.stat.mtime == initial_stat.stat.mtime"
+      - "repeat_stat.stat.ctime == initial_stat.stat.ctime"
+    msg: "failed to maintain idempotency - file was updated"
+
+- name: "Validate: yaml content still okay"
+  assert:
+    that:
+      - "repeat_stat.stat.isreg == True"
+#      - "repeat_stat.stat.checksum == 'cf1c23eeef9073f38c0fb842304e545ce04160f5b87435944b324181046fa45d25d6a315a2b4598e13e6ff6c5de49329'"
+    msg: "failed to create correct yaml file"

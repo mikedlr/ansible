@@ -188,6 +188,9 @@ test_tags:
 blocks:
 	(cd targets/blocks && ./runme.sh $(TEST_FLAGS))
 
+yaml_file:
+	(cd targets/yaml_file && ./runme.sh $(TEST_FLAGS))
+
 cloud: amazon rackspace azure
 
 cloud_cleanup: amazon_cleanup rackspace_cleanup

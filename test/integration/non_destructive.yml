@@ -13,6 +13,7 @@
     - { role: copy, tags: test_copy }
     - { role: stat, tags: test_stat }
     - { role: template, tags: test_template }
+    - { role: yaml_file, tags: test_yaml_file }
     - { role: file, tags: test_file }
     - { role: fetch, tags: test_fetch }
     - { role: synchronize, tags: test_synchronize }
