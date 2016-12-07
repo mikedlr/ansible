@@ -68,7 +68,7 @@
     checksum_algorithm: sha384
   register: repeat_stat
 
-- name: "Validate: action mde no change"
+- name: "Validate: action made no change"
   assert:
     that:
       - "template_result.changed == False"
@@ -82,3 +82,37 @@
       - "repeat_stat.stat.isreg == True"
 #      - "repeat_stat.stat.checksum == 'cf1c23eeef9073f38c0fb842304e545ce04160f5b87435944b324181046fa45d25d6a315a2b4598e13e6ff6c5de49329'"
     msg: "failed to create correct yaml file"
+
+
+- name: "Add variables to file"
+  yaml_file:
+    file: "{{output_dir}}/foo.templated.yml"
+    add_vars:
+        top_level: "top level value"
+        dict_outside:
+           dict_inside:
+              key1: "value1"
+              key2: "value2"
+
+
+- name: "Load the YAML file"
+  include_vars:
+    file: "{{output_dir}}/foo.templated.yml"
+    name: second_include
+
+- name: "Validate: yaml file still contents good"
+  assert:
+    that:
+      - "second_include.yaml_loaded == 'definitely loaded'"
+      - "second_include.a_big_number == 49201455582"
+      - "second_include.random_variable == '{{ random_token }}'"
+    msg: "failed to maintain original variables in yaml file"
+
+- name: "Validate: added new variables"
+  assert:
+    that:
+      - "second_include.dict_outside.dict_inside.key1 == 'value1'"
+      - "second_include.dict_outside.dict_inside.key2 == 'value2'"
+      - "second_include.top_level == 'top level value'"
+    msg: "failed to correctly add new values to yaml file"
+
