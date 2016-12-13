@@ -84,20 +84,36 @@
     msg: "failed to create correct yaml file"
 
 
-- name: "Add variables to file"
-  yaml_file:
-    file: "{{output_dir}}/foo.templated.yml"
-    add_vars:
-        top_level: "top level value"
-        dict_outside:
-           dict_inside:
-              key1: "value1"
-              key2: "value2"
+# this is what we really want;
+# 
+# - name: "Add variables to file"
+#   yaml_file:
+#     file: "{{output_dir}}/foo.templated.yml"
+#     add_vars:
+#         top_level: "top level value"
+#         dict_outside:
+#            dict_inside:
+#               key1: "value1"
+#               key2: "value2"
 
+- name: "Add variables to variable"
+  vars:
+    new_contents:
+      top_level: "top level value"
+      dict_outside:
+        dict_inside:
+          key1: "value1"
+          key2: "value2"
+    combined_contents: "{{ new_contents | combine ( first_include ) }} "
+    yaml_contents: "{{ combined_contents | to_yaml }}"
+  template:
+    src: "complete-yaml-file.j2"
+    dest: "{{output_dir}}/complete.yml"
+    mode: "0644"
 
-- name: "Load the YAML file"
+- name: "Load the new YAML file"
   include_vars:
-    file: "{{output_dir}}/foo.templated.yml"
+    file: "{{output_dir}}/complete.yml"
     name: second_include
 
 - name: "Validate: yaml file still contents good"
