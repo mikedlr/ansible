@@ -338,7 +338,7 @@ def main():
                 func_kwargs.update({'VpcConfig':{'SubnetIds': [], 'SecurityGroupIds': []}})
 
         # Upload new configuration if configuration has changed
-        if len(func_kwargs) > 2:
+        if len(func_kwargs) > 1:
             try:
                 if not check_mode:
                     response = client.update_function_configuration(**func_kwargs)
@@ -391,7 +391,7 @@ def main():
         # We're done
         module.exit_json(changed=changed, **camel_dict_to_snake_dict(response))
 
-    # Function doesn't exists, create new Lambda function
+    # Function doesn't exist, create a new Lambda function
     elif state == 'present':
         if s3_bucket and s3_key:
             # If function is stored on S3
