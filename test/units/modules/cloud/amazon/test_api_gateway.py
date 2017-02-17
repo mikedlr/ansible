@@ -55,7 +55,7 @@ def test_upload_api(monkeypatch):
     class FakeConnection:
 
         def put_rest_api(*args, **kwargs):
-            assert kwargs["body"] == "the-swagger-text-is-faked"
+            assert kwargs["body"] == "the-swagger-text-is-fake"
             return { "msg" : "success!" }
 
     def return_fake_connection(*args, **kwargs):
