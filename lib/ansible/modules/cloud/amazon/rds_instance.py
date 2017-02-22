@@ -14,10 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Ansible. If not, see <http://www.gnu.org/licenses/>.
 
-import botocore
-import time
-
-
 ANSIBLE_METADATA = {'status': ['preview'],
                     'supported_by': 'community',
                     'version': '0.1'}
@@ -67,24 +63,20 @@ options:
     default: standard unless iops is set
   instance_type:
     description:
-      - The instance type of the database. If source_instance is specified then the replica inherits the same instance type as the source instance.
-    required: false
+      - The instance type of the database. If source_instance is specified then the replica inherits
+        the same instance type as the source instance.
   username:
     description:
       - Master database username.
-    required: false
   password:
     description:
       - Password for the master database username.
-    required: false
   db_name:
     description:
       - Name of a database to create within the instance. If not specified then no database is created.
-    required: false
   engine_version:
     description:
       - Version number of the database engine to use. If not specified then the current Amazon RDS default engine version is used.
-    required: false
   parameter_group:
     description:
       - Name of the DB parameter group to associate with this instance. If omitted then the RDS default DBParameterGroup will be used.
@@ -273,6 +265,17 @@ EXAMPLES = '''
     msg: "The new db endpoint is {{ rds.instance.endpoint }}"
 '''
 
+import time
+
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.ec2 import ec2_argument_spec, get_aws_connection_info, boto3_conn, HAS_BOTO3
+from ansible.module_utils.ec2 import ansible_dict_to_boto3_tag_list, boto3_tag_list_to_ansible_dict
+from ansible.module_utils.rds import RDSDBInstance, get_db_instance
+
+try:
+    import botocore
+except ImportError:
+    pass # caught by imported HAS_BOTO3
 
 DEFAULT_PORTS= {
     'aurora': 3306,
@@ -756,10 +759,5 @@ def main():
     if module.params.get('snapshot'):
         restore_db_instance(module, conn)
     ensure_db_state(module, conn)
-
-# import module snippets
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.ec2 import ec2_argument_spec, get_aws_connection_info, boto3_conn, ansible_dict_to_boto3_tag_list
-from ansible.module_utils.rds import RDSDBInstance, get_db_instance
 
 main()
