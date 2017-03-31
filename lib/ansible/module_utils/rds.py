@@ -36,7 +36,7 @@ def get_db_snapshot(conn, snapshotid):
         response = conn.describe_db_snapshots(DBSnapshotIdentifier=snapshotid)
         snapshot = RDSSnapshot(response['DBSnapshots'][0])
         return snapshot
-    except botocore.exceptions.ClientError:
+    except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == 'DBSnapshotNotFound':
             return None
         else:
