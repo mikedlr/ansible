@@ -140,6 +140,30 @@
 - name: uninstall hello with apt
   apt: pkg=hello state=absent purge=yes
 
+# verify that apt is handling multi-arch systems properly
+- name: add fake second architecture
+  command: dpkg --add-architecture ansibletest
+
+- name: install deb file
+  apt: deb="/var/cache/apt/archives/hello_{{ hello_version.stdout }}_{{ hello_architecture.stdout }}.deb"
+  register: apt_multi_initial
+
+- name: install deb file again
+  apt: deb="/var/cache/apt/archives/hello_{{ hello_version.stdout }}_{{ hello_architecture.stdout }}.deb"
+  register: apt_multi_secondary
+
+- name: verify installation of hello
+  assert:
+    that:
+        - "apt_multi_initial.changed"
+        - "not apt_multi_secondary.changed"
+
+- name: remove fake second architecture
+  command: dpkg --remove-architecture ansibletest
+
+- name: uninstall hello with apt
+  apt: pkg=hello state=absent purge=yes
+
 - name: force install of deb
   apt: deb="/var/cache/apt/archives/hello_{{ hello_version.stdout }}_{{ hello_architecture.stdout }}.deb" force=true
   register: dpkg_force
