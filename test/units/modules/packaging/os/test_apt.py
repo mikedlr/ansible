@@ -115,16 +115,20 @@ class AptInstallationTestCase(unittest.TestCase):
 
         # and that I have more than one architecture on my system
         get_architectures_double = mock.Mock(return_value=[ "i386", "x86_64" ])
+
         # and that the versions of the modules match those installed
         # but one package (apt) has a different architecture from the installed version
         #   N.B. we hardwire a call dpkg once for each package to get the architecture
         #        then once to install the missing packages
         m_mock.run_command.side_effect = [ 
-            # 'apt'
+            # This is the response from dpkg when called with different options 
+            # dpkg   [ Package ],  [ Version ], [ Architecture ] 
+            # in each list is [ return code, stdout, stderr ] 
+            # first for apt package
             [ 0, "apt", "fake err" ],[ 0, "10101", "fake err" ],[ 0, "i386", "fake err" ],  
-            # 'apt-utils'
+            # then for 'apt-utils'
             [ 0, "apt-utils", "fake err" ],[ 0, "1901", "fake err" ], [ 0, "x86_64", "fake err" ],  
-            # result from actual install 
+            # finally the result from actual install - only return code matters
             [ 0, "fake out", "fake error" ] 
         ]
         apt_cache_double=mock.MagicMock(spec=apt.Cache)
@@ -150,6 +154,8 @@ class AptInstallationTestCase(unittest.TestCase):
         assert len(m_mock.run_command.call_args_list) > 6, "run command not called for each package!"
 
         package_lookup_mock=apt_cache_double().__getitem__
+
+        # This asserts that the packages were looked up in the package cache with the correct key
         package_lookup_mock.assert_has_calls([mock.call("apt:i386"),mock.call("apt-utils:x86_64")])
 
         # and the final command should install only the alternate architecture package.
