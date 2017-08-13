@@ -362,8 +362,7 @@ def main():
         # If VPC configuration is desired
         if vpc_subnet_ids or vpc_security_group_ids:
             try:
-                assert len(vpc_subnet_ids) > 0
-                assert len(vpc_security_group_ids) > 0
+                assert vpc_subnet_ids and vpc_security_group_ids
             except (AssertionError, TypeError):
                 module.fail_json(msg='vpc connectivity requires at least one security group and one subnet')
 
